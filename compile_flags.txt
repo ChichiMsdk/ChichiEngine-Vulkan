@@ -1,0 +1,10 @@
+-IC:\engine\engine\src
+-IC:\VulkanSDK\1.3.275.0\Include
+-LC:\VulkanSDK\1.3.275.0\Lib
+-LC:\Lib\cglm\win\x64\Release
+-LC:\Lib\glfw\lib-vc2022
+-Wno-inconsistent-dllimport
+-Wall
+-WMicrosoft
+-ferror-limit=0
+-Wno-unreachable-code
