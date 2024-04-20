@@ -24,6 +24,7 @@ int main(void)
 		KFATAL("The game's function pointers must not be NULL!");
 		return -2;
 	}
+
 	if (!application_create(&game_inst))
 	{
 		KINFO("Application failed to create !");
@@ -35,6 +36,7 @@ int main(void)
 		KINFO("Application did not shutdown gracefully.");
 		return 2;
 	}
+
 	shutdown_memory();
 	return 0;
 }

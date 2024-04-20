@@ -34,12 +34,12 @@ static const char *memory_tag_strings[MEMORY_TAG_MAX_TAGS] = {
 
 static struct memory_stats stats;
 
-void initialize_memory()
+void initialize_memory(void)
 {
 	platform_zero_memory(&stats, sizeof(stats));
 }
 
-void shutdown_memory()
+void shutdown_memory(void)
 {
 
 }
@@ -87,7 +87,7 @@ void *kset_memory(void *dest, i32 value, u64 size)
 	return platform_set_memory(dest, value, size);
 }
 
-char *get_memory_usage_str()
+char *get_memory_usage_str(void)
 {
 	const u64 gib = 1024 * 1024 * 1024;
 	const u64 mib = 1024 * 1024;

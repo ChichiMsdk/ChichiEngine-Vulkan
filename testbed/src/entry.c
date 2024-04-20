@@ -1,6 +1,7 @@
 #include "game.h"
 #include <entry.h>
 
+// TODO: watch video
 #include <core/kmemory.h>
 
 b8 create_game(game *out_game)
@@ -14,6 +15,7 @@ b8 create_game(game *out_game)
 	out_game->render = game_render;
 	out_game->initialize = game_initialize;
 	out_game->on_resize = game_on_resize;
+
 	out_game->state = kallocate(sizeof(game_state), MEMORY_TAG_GAME);
 	return TRUE;
 }
