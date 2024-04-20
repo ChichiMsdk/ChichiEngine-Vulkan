@@ -27,8 +27,10 @@ typedef struct event_system_state
 static b8 is_initialized = FALSE;
 static event_system_state state;
 
-b8 event_initialize() {
-    if (is_initialized == TRUE) {
+b8 event_initialize(void) 
+{
+    if (is_initialized == TRUE) 
+	{
         return FALSE;
     }
     is_initialized = FALSE;
@@ -39,7 +41,7 @@ b8 event_initialize() {
     return TRUE;
 }
 
-void event_shutdown()
+void event_shutdown(void)
 {
     // Free the events arrays. And objects pointed to should be destroyed on their own.
     for(u16 i = 0; i < MAX_MESSAGE_CODES; ++i)
@@ -116,7 +118,8 @@ b8 event_unregister(u16 code, void* listener, PFN_on_event on_event)
 
 b8 event_fire(u16 code, void* sender, event_context context)
 {
-    if(is_initialized == FALSE) {
+    if(is_initialized == FALSE) 
+	{
         return FALSE;
     }
 
@@ -127,7 +130,8 @@ b8 event_fire(u16 code, void* sender, event_context context)
     }
 
     u64 registered_count = darray_length(state.registered[code].events);
-    for(u64 i = 0; i < registered_count; ++i) {
+    for(u64 i = 0; i < registered_count; ++i) 
+	{
         registered_event e = state.registered[code].events[i];
         if(e.callback(code, sender, e.listener, context))
 		{

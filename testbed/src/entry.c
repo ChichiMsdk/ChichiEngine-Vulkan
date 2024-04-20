@@ -1,6 +1,8 @@
 #include "game.h"
 #include <entry.h>
 
+// WARNING: event should be multithreaded
+// WARNING: darray must be changed see video #008 on events kohi engine
 // TODO: watch video
 #include <core/kmemory.h>
 
