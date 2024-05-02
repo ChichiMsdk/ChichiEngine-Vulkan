@@ -1,6 +1,9 @@
 all: engine testbed
 	@echo "All assemblies built successfully."
 
+run:
+	.\build-all.bat && bin\testbed.exe
+
 engine:
 	@echo "Building engine"
 	@$(MAKE) -C engine
