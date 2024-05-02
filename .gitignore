@@ -5,3 +5,8 @@
 *.dll
 *.exp
 *.exe
+.cache/
+bin/
+engine.json
+testbed.json
+*.debugtarget
