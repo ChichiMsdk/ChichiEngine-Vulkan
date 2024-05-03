@@ -42,6 +42,7 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
 
 #if defined(_DEBUG)
 	darray_push(required_extensions, &VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
 	KDEBUG("Required extensions:");
 	u32 length = darray_length(required_extensions);
 	for (u32 i = 0; i < length; ++i)
@@ -49,6 +50,9 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
 		KDEBUG(required_extensions[i]);
 	}
 #endif
+
+	create_info.enabledExtensionCount = darray_length(required_extensions);
+	create_info.ppEnabledExtensionNames = required_extensions;
 
 	// Validation layers.
 	const char **required_validation_layer_names = 0;
@@ -113,8 +117,10 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
 	debug_create_info.messageType = 
 		VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | 
 		VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | 
-		VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+		VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
 	debug_create_info.pfnUserCallback = vk_debug_callback;
+
 	PFN_vkCreateDebugUtilsMessengerEXT func =
 		(PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(context.instance, "vkCreateDebugUtilsMessengerEXT");
 	KASSERT_MSG(func, "Failed to create debug messenger!");
@@ -122,12 +128,15 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
 	KDEBUG("Vulkan debugger created.");
 #endif
 
-      KINFO("Vulkan renderer initialized successfully.");
+    KINFO("Vulkan renderer initialized successfully.");
+	darray_destroy(required_validation_layer_names);
+	darray_destroy(required_extensions);
     return TRUE;
 }
 
 void vulkan_renderer_backend_shutdown(renderer_backend* backend)
 {
+#if defined(_DEBUG)
 	KDEBUG("Destroying Vulkan debugger.");
 	if (context.debug_messenger)
 	{
@@ -135,6 +144,7 @@ void vulkan_renderer_backend_shutdown(renderer_backend* backend)
 			(PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(context.instance, "vkDestroyDebugUtilsMessengerEXT");
 		func(context.instance, context.debug_messenger, context.allocator);
 	}
+#endif
 	KDEBUG("Destroying Vulkan instance...");
 	vkDestroyInstance(context.instance, context.allocator);
 }
