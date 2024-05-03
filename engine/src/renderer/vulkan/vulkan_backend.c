@@ -1,11 +1,26 @@
 #include "vulkan_backend.h"
 
+#include "vulkan/vulkan_core.h"
 #include "vulkan_types.inl"
+#include "vulkan_platform.h"
 
 #include "core/logger.h"
+#include "core/mystring.h"
+
+#include "containers/darray.h"
+#include "plateform/plateform.h"
+
+#define _DEBUG
 
 // static Vulkan context
 static vulkan_context context;
+
+VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
+		VkDebugUtilsMessageTypeFlagsEXT message_types,
+		const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
+		void *user_data
+		);
 
 b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* application_name, struct platform_state* plat_state)
 {
@@ -17,15 +32,92 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     app_info.apiVersion = VK_API_VERSION_1_2;
     app_info.pApplicationName = application_name;
     app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    app_info.pEngineName = "Kohi Engine";
+    app_info.pEngineName = "Chichi Engine";
     app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 
     VkInstanceCreateInfo create_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     create_info.pApplicationInfo = &app_info;
-    create_info.enabledExtensionCount = 0;
-    create_info.ppEnabledExtensionNames = 0;
-    create_info.enabledLayerCount = 0;
-    create_info.ppEnabledLayerNames = 0;
+
+	const char **required_extensions = darray_create(const char *);
+	darray_push(required_extensions, &VK_KHR_SURFACE_EXTENSION_NAME);
+	platform_get_required_extension_names(&required_extensions);
+
+#if defined(_DEBUG)
+	darray_push(required_extensions, &VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	KDEBUG("Required extensions:");
+	u32 length = darray_length(required_extensions);
+	for (u32 i = 0; i < length; ++i)
+	{
+		KDEBUG(required_extensions[i]);
+	}
+#endif
+
+	// Validation layers.
+	const char **required_validation_layer_names = 0;
+	u32 required_validation_layer_count = 0;
+
+	// If validation should be done, get a list of the required validation layert names
+	// and make sure they exist. Validation layers should only be enabled on non-release builds.
+
+#if defined(_DEBUG)
+	KINFO("Validation layers enabled. Enumerating...");
+
+	// The list of validation layers required.
+	required_validation_layer_names = darray_create(const char*);
+	darray_push(required_validation_layer_names, &"VK_LAYER_KHRONOS_validation");
+	required_validation_layer_count = darray_length(required_validation_layer_names);
+	
+	// Obtain list of available validation layers.
+	u32 available_layer_count = 0;
+	VK_CHECK(vkEnumerateInstanceLayerProperties(&available_layer_count, 0));
+	VkLayerProperties* available_layers = darray_reserve(VkLayerProperties, available_layer_count);
+	VK_CHECK(vkEnumerateInstanceLayerProperties(&available_layer_count, available_layers));
+
+	//  Verify all required layers are available.
+	for (u32 i = 0; i < required_validation_layer_count; ++i)
+	{
+		KINFO("Searching for layer: %s...", required_validation_layer_names[i]);
+		b8 found = FALSE;
+		for (u32 j = 0; j < available_layer_count; ++j)
+		{
+			if (strings_equal(required_validation_layer_names[i], available_layers[j].layerName))
+			{
+				found = TRUE;
+				KINFO("Found.");
+				break;
+			}
+		}
+		if (!found)
+		{
+			KFATAL("Required validation layer is missing: %s", required_validation_layer_names[i]);
+			return FALSE;
+		}
+	}
+	KINFO("All required layers are present.");
+#endif
+
+	create_info.enabledLayerCount = required_validation_layer_count;
+    create_info.ppEnabledLayerNames = required_validation_layer_names;
+
+    VK_CHECK(vkCreateInstance(&create_info, context.allocator, &context.instance));
+    KINFO("Vulkan Instance created.");
+
+#if defined(_DEBUG)
+	KDEBUG("Creating Vulkan debugger...");
+	u32 log_severity = 
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+		//VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+
+	VkDebugUtilsMessengerCreateInfoEXT debug_create_info = {VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
+	debug_create_info.messageSeverity = log_severity;
+	debug_create_info.messageType = 
+		VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | 
+		VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | 
+		VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+	debug_create_info.pfnUserCallback = vk_debug_callback;
+#endif
 
     VkResult result = vkCreateInstance(&create_info, context.allocator, &context.instance);
     if(result != VK_SUCCESS)
