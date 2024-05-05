@@ -4,6 +4,7 @@
 #include "vulkan_types.inl"
 #include "vulkan_platform.h"
 #include "vulkan_device.h"
+#include "vulkan_swapchain.h"
 
 #include "core/logger.h"
 #include "core/mystring.h"
@@ -21,8 +22,11 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
 		void *user_data
 		);
 
+i32 find_memory_index(u32 type_filter, u32 property_flags);
+
 b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* application_name, struct platform_state* plat_state)
 {
+	context.find_memory_index = find_memory_index;
     // TODO: custom allocator.
     context.allocator = 0;
 
@@ -136,12 +140,19 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
 		KERROR("Failed to create platform surface!");
 		return FALSE;
 	}
+	KDEBUG("Vulkan surface created.");
 	//Device creation.
 	if (!vulkan_device_create(&context))
 	{
 		KERROR("Failed to create device!");
 		return FALSE;
 	}
+
+	vulkan_swapchain_create(
+			&context,
+			context.framebuffer_width,
+			context.framebuffer_height,
+			&context.swapchain);
 
     KINFO("Vulkan renderer initialized successfully.");
 	darray_destroy(required_validation_layer_names);
@@ -151,6 +162,20 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
 
 void vulkan_renderer_backend_shutdown(renderer_backend* backend)
 {
+	// Destroy in opposite of creation!
+	// Swapchain
+	vulkan_swapchain_destroy(&context, &context.swapchain);
+
+	KDEBUG("Destroying Vulkan device...");
+	vulkan_device_destroy(&context);
+
+	KDEBUG("Destroying Vulkan surface...");
+	if (context.surface)
+	{
+		vkDestroySurfaceKHR(context.instance, context.surface, context.allocator);
+		context.surface = 0; // NOTE: not sure about zeroing out stuff...
+	}
+
 #if defined(_DEBUG)
 	KDEBUG("Destroying Vulkan debugger.");
 	if (context.debug_messenger)
@@ -202,4 +227,22 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
 			break;
 	}
 	return VK_FALSE;
+}
+
+i32 find_memory_index(u32 type_filter, u32 property_flags)
+{
+    VkPhysicalDeviceMemoryProperties memory_properties;
+    vkGetPhysicalDeviceMemoryProperties(context.device.physical_device, &memory_properties);
+
+    for (u32 i = 0; i < memory_properties.memoryTypeCount; ++i)
+	{
+        // Check each memory type to see if its bit is set to 1.
+        if (type_filter & (1 << i) && (memory_properties.memoryTypes[i].propertyFlags & property_flags) == property_flags)
+		{
+            return i;
+        }
+    }
+
+    KWARN("Unable to find suitable memory type!");
+    return -1;
 }
