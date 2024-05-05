@@ -5,6 +5,7 @@
 #include "vulkan_platform.h"
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
+#include "vulkan_renderpass.h"
 
 #include "core/logger.h"
 #include "core/mystring.h"
@@ -154,6 +155,14 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
 			context.framebuffer_height,
 			&context.swapchain);
 
+	vulkan_renderpass_create(
+			&context,
+			&context.main_renderpass,
+			0, 0, context.framebuffer_width, context.framebuffer_height,
+			0.0f, 0.0f, 0.2f, 1.0f,
+			1.0f,
+			0);
+
     KINFO("Vulkan renderer initialized successfully.");
 	darray_destroy(required_validation_layer_names);
 	darray_destroy(required_extensions);
@@ -163,8 +172,10 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
 void vulkan_renderer_backend_shutdown(renderer_backend* backend)
 {
 	// Destroy in opposite of creation!
-	// Swapchain
+	vulkan_renderpass_destroy(&context, &context.main_renderpass);
+
 	vulkan_swapchain_destroy(&context, &context.swapchain);
+
 
 	KDEBUG("Destroying Vulkan device...");
 	vulkan_device_destroy(&context);
