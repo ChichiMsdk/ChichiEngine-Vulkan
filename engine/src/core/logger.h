@@ -7,6 +7,38 @@
 #define LOG_DEBUG_ENABLED 1
 #define LOG_TRACE_ENABLED 1
 
+//colors VIRTUALTERMINAL ONLY WINDOWS
+
+#define YU_ALL_DEFAULT "\x1b[0m"
+#define YU_BOLD "\x1b[1m"
+#define YU_FG_BLACK "\x1b[30m"
+#define YU_FG_RED "\x1b[31m"
+#define YU_FG_GREEN "\x1b[32m"
+#define YU_FG_YELLOW "\x1b[33m"
+#define YU_FG_BLUE "\x1b[34m"
+#define YU_FG_MAGENTA "\x1b[35m"
+#define YU_FG_CYAN "\x1b[36m"
+#define YU_FG_WHITE "\x1b[37m"
+#define YU_FG_EXTENDED "\x1b[38m"
+#define YU_FG_DEFAULT "\x1b[39m"
+#define YU_BG_BLACK "\x1b[40m"
+#define YU_BG_RED "\x1b[41m"
+#define YU_BG_GREEN "\x1b[42m"
+#define YU_BG_YELLOW "\x1b[43m"
+#define YU_BG_BLUE "\x1b[44m"
+#define YU_BG_MAGENTA "\x1b[45m"
+#define YU_BG_CYAN "\x1b[46m"
+#define YU_BG_WHITE "\x1b[47m"
+#define YU_BG_EXTENDED "\x1b[48m"
+#define YU_BG_DEFAULT "\x1b[49m"
+
+#define LS_FATAL YU_BG_RED YU_FG_BLACK "[FATAL]: "
+#define LS_ERROR YU_FG_RED "[ERROR]: "
+#define LS_WARN YU_FG_YELLOW "[WARN]: "
+#define LS_INFO YU_FG_GREEN "[INFO]: "
+#define LS_DEBUG YU_FG_MAGENTA "[DEBUG]: "
+#define LS_TRACE YU_FG_CYAN "[TRACE]: "
+
 // Disable debug and trace logging for release builds.
  #if KRELEASE == 1
  #define LOG_DEBUG_ENABLED 0

@@ -166,28 +166,46 @@ void *platform_set_memory(void *dest, i32 value, u64 size)
 
 void platform_console_write(const char *message, u8 colour) 
 {
-    HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE); // maybe check error looks boring
+
+	// maybe check error looks boring
+    HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE); 
+
+    DWORD dwMode = 0;
+    GetConsoleMode(console_handle, &dwMode);
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(console_handle, dwMode);
+
     // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
-    static u8 levels[6] = {64, 4, 6, 2, 1, 8};
-    SetConsoleTextAttribute(console_handle, levels[colour]); //check MSDN deprecated for powershell
-    OutputDebugStringA(message); //DEBUG console output windows only
+    static u8 levels[6] = {BACKGROUND_RED, FOREGROUND_RED, FOREGROUND_GREEN | FOREGROUND_RED, FOREGROUND_GREEN,FOREGROUND_BLUE, FOREGROUND_INTENSITY};
+//    SetConsoleTextAttribute(console_handle, levels[colour]); //check MSDN deprecated for powershell
+//    OutputDebugStringA(message); //DEBUG console output windows only
     u64 length = strlen(message);
     LPDWORD number_written = 0;
     WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), message, (DWORD)length, number_written, 0);
-    SetConsoleTextAttribute(console_handle, 0x0F); //resets the color
+//     SetConsoleTextAttribute(console_handle, 0x0F); //resets the color
+//      dwMode |= 0;
+//      SetConsoleMode(console_handle, dwMode);
 }
 
 void platform_console_write_error(const char *message, u8 colour) 
 {
     HANDLE console_handle = GetStdHandle(STD_ERROR_HANDLE);
+
+    DWORD dwMode = 0;
+    GetConsoleMode(console_handle, &dwMode);
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(console_handle, dwMode);
+
     // FATAL,ERROR,WARN,INFO,DEBUG,TRACE
-    static u8 levels[6] = {64, 4, 6, 2, 1, 8};
-    SetConsoleTextAttribute(console_handle, levels[colour]);
-    OutputDebugStringA(message);
+    static u8 levels[6] = {BACKGROUND_RED, FOREGROUND_RED, FOREGROUND_GREEN | FOREGROUND_RED, FOREGROUND_GREEN,FOREGROUND_BLUE, FOREGROUND_INTENSITY};
+//    SetConsoleTextAttribute(console_handle, levels[colour]);
+//    OutputDebugStringA(message);
     u64 length = strlen(message);
     LPDWORD number_written = 0;
     WriteConsoleA(GetStdHandle(STD_ERROR_HANDLE), message, (DWORD)length, number_written, 0);
-    SetConsoleTextAttribute(console_handle, 0x0F); //resets the color
+//     SetConsoleTextAttribute(console_handle, 0x0F); //resets the color
+//      dwMode |= 0;
+//      SetConsoleMode(console_handle, dwMode);
 }
 
 f64 platform_get_absolute_time()
