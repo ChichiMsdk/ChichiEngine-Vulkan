@@ -36,8 +36,8 @@
 #define LS_ERROR YU_FG_RED "[ERROR]: "
 #define LS_WARN YU_FG_YELLOW "[WARN]: "
 #define LS_INFO YU_FG_GREEN "[INFO]: "
-#define LS_DEBUG YU_FG_MAGENTA "[DEBUG]: "
-#define LS_TRACE YU_FG_CYAN "[TRACE]: "
+#define LS_DEBUG YU_FG_BLUE "[DEBUG]: "
+#define LS_TRACE YU_FG_MAGENTA "[TRACE]: "
 
 // Disable debug and trace logging for release builds.
  #if KRELEASE == 1
