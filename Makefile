@@ -1,4 +1,4 @@
-all: engine testbed
+all: testbed
 	@echo "All assemblies built successfully."
 
 run:
@@ -6,15 +6,19 @@ run:
 
 engine:
 	@echo "Building engine"
-	@$(MAKE) -C engine
+	@$(MAKE) --no-print-directory -C engine
 
-testbed:
+testbed: engine
 	@echo "Building testbed"
-	@$(MAKE) -C testbed
+	@$(MAKE) --no-print-directory -C testbed
 
 clean:
+	@make --no-print-directory -C testbed clean
+	@make --no-print-directory -C engine clean
 
 fclean: clean
+	@make --no-print-directory -C testbed fclean
+	@make --no-print-directory -C engine fclean
 
 re: fclean all
 

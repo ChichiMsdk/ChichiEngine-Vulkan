@@ -1,26 +1,101 @@
-NAME 	= ../bin/testbed
-SRCS = $(shell ..\files.bat)
-#COMPILER_FLAGS = -g
-#LINKER_FLAGS = -L../bin -lengine
-#DEFINES = -DDEBUG -DKIMPORT
+#NAME 	= ../bin/engine
 
-INCLUDE_FLAGS = -IC:\engine\engine\src -IC:\Lib\glfw\include -IC:\Lib\cglm\include -IC:\VulkanSDK\1.3.275.0\Include
-COMPILER_FLAGS = /Zi
-LINKER_FLAGS = /link /libpath:../bin/ engine.lib
-DEFINES = /DDEBUG /DKIMPORT
-#clang -MJ"$(SRCS)" $(COMPILER_FLAGS) -o $(NAME) $(DEFINES) $(INCLUDE_FLAGS) $(LINKER_FLAGS)
+ASSEMBLY = testbed
+EXTENSION = .exe
+DIR = $(subst /,\,${CURDIR})
+BUILD_DIR = ..\bin
+OBJ_DIR = ..\obj\testbed
+INCLUDE_FL = -Isrc -I..\engine\src
+SRC_FILES = $(shell ..\files2.bat)
+DIRECTORIES = $(subst $(DIR),,$(shell dir src /S /AD /B | findstr /i src))
+OBJ_FILES = $(SRC_FILES:%=$(OBJ_DIR)/%.o)
 
-all: $(NAME)
+#clang
+CLANG_COMPILER_FLAGS = -g -O0 -Wall -fdeclspec -MJ ..\engine.json
+CLANG_LINKER_FLAGS = -g -lengine.lib -L$(BUILD_DIR)
+CLANG_DEFINES = -D_DEBUG -DKIMPORT
+CLANG_DLL = -o $(NAME).exe
+CLANG_NAME = -o $(NAME)
 
-$(NAME):
-	clang-cl /clang:-MJcompile_commands.json $(SRCS) $(COMPILER_FLAGS) /Fe"$(NAME)" $(DEFINES) $(INCLUDE_FLAGS) $(LINKER_FLAGS)
+#will be used
+CC = clang
+DEFINES = $(CLANG_DEFINES)
+LINKER_FL = $(CLANG_LINKER_FLAGS)
+COMPILE_FL = $(CLANG_COMPILER_FLAGS)
+DLL = $(CLANG_DLL)
+OUT_NAME = $(CLANG_NAME)
+
+all: scaffolding $(BUILD_DIR)/$(ASSEMBLY)$(EXTENSION)
+
+scaffolding: $(BUILD_DIR) $(OBJ_DIR)
+
+$(OBJ_DIR):
+	-@setlocal enableextensions enabledelayedexpansion && mkdir $(OBJ_DIR)\src 2>nul || cd .
+	@echo Created $(OBJ_DIR) folders
+
+$(BUILD_DIR):
+	-@setlocal enableextensions enabledelayedexpansion && mkdir $(BUILD_DIR) 2>nul || cd .
+	@echo Created bin folder
+
+$(BUILD_DIR)/$(ASSEMBLY)$(EXTENSION): $(OBJ_FILES) 
+	@$(CC) $(OBJ_FILES) -o $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION) $(LINKER_FL)
+	@echo Linked $(ASSEMBLY)$(EXTENSION) in $(BUILD_DIR)\!
+	@..\json_build.bat
 
 clean:
+	@if exist $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION) del $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION)
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).lib del $(BUILD_DIR)\$(ASSEMBLY).lib 
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).ilk del $(BUILD_DIR)\$(ASSEMBLY).ilk 
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).pdb del $(BUILD_DIR)\$(ASSEMBLY).pdb 
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).exp del $(BUILD_DIR)\$(ASSEMBLY).exp 
 
 fclean: clean
-
-re: fclean all
+	@if exist $(OBJ_DIR) rmdir /s /q $(OBJ_DIR) && @echo deleted $(OBJ_DIR)
 
 fc: fclean
 
-.PHONY: fclean fc clean all opti
+re: fclean all
+
+$(OBJ_DIR)/%.c.o: %.c
+	@echo $<...
+	@$(CC) $(COMPILE_FL) $(DEFINES) $(INCLUDE_FL) $< -c -o $@
+
+.PHONY: all clean re fclean fc
+
+#NAME 	= ../bin/testbed
+#SRCS = $(shell ..\files.bat)
+#
+#INCLUDE_FL = -IC:\engine\engine\src -IC:\VulkanSDK\1.3.275.0\Include
+#
+#CLANG_COMPILER_FLAGS = -g -O0 -Wvarargs -Wall -MJ ..\testbed.json
+#CLANG_LINKER_FLAGS = -L../bin -lengine
+#CLANG_DEFINES = -D_DEBUG -DKIMPORT
+#CLANG_NAME = -o $(NAME)
+#
+#MSVC_COMPILER_FLAGS = /clang:-MJ..\testbed.json /Zi
+#MSVC_LINKER_FLAGS = /link /libpath:../bin/ engine.lib
+#MSVC_DEFINES = /D_DEBUG /DKIMPORT
+#MSVC_NAME = /Fe"$(NAME)"
+#
+#CC = clang
+#DEFINES = $(CLANG_DEFINES)
+#LINKER_FL = $(CLANG_LINKER_FLAGS)
+#COMPILE_FL = $(CLANG_COMPILER_FLAGS)
+#OUT_NAME = $(CLANG_NAME)
+#
+##clang -MJ"$(SRCS)" $(COMPILER_FLAGS) -o $(NAME) $(DEFINES) $(INCLUDE_FLAGS) $(LINKER_FLAGS)
+#
+#all: $(NAME)
+#
+#$(NAME):
+#	$(CC) $(SRCS) $(COMPILER_FLAGS) $(OUT_NAME) $(DEFINES) $(INCLUDE_FL) $(LINKER_FL)
+#
+#clean:
+#
+#fclean: clean
+#
+#re: fclean all
+#
+#fc: fclean
+#
+#.PHONY: fclean fc clean all opti

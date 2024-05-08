@@ -469,19 +469,20 @@ b8 physical_device_meets_requirements(
         }
     }
 
-    // Print out some info about the device
+	/* NOTE: here we cast i32 so that compiler is ok !
+	 * Print out some info about the device */
     KINFO("       %d |       %d |       %d |        %d | %s",
-          out_queue_info->graphics_family_index != -1,
-          out_queue_info->present_family_index != -1,
-          out_queue_info->compute_family_index != -1,
-          out_queue_info->transfer_family_index != -1,
+          (i32)out_queue_info->graphics_family_index != -1,
+          (i32)out_queue_info->present_family_index != -1,
+          (i32)out_queue_info->compute_family_index != -1,
+          (i32)out_queue_info->transfer_family_index != -1,
           properties->deviceName);
 
     if (
-        (!requirements->graphics || (requirements->graphics && out_queue_info->graphics_family_index != -1)) &&
-        (!requirements->present || (requirements->present && out_queue_info->present_family_index != -1)) &&
-        (!requirements->compute || (requirements->compute && out_queue_info->compute_family_index != -1)) &&
-        (!requirements->transfer || (requirements->transfer && out_queue_info->transfer_family_index != -1)))
+        (!requirements->graphics || (requirements->graphics && (i32)out_queue_info->graphics_family_index != -1)) &&
+        (!requirements->present || (requirements->present && (i32)out_queue_info->present_family_index != -1)) &&
+        (!requirements->compute || (requirements->compute && (i32)out_queue_info->compute_family_index != -1)) &&
+        (!requirements->transfer || (requirements->transfer && (i32)out_queue_info->transfer_family_index != -1)))
 	{
         KINFO("Device meets queue requirements.");
         KTRACE("Graphics Family Index: %i", out_queue_info->graphics_family_index);

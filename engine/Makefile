@@ -1,28 +1,69 @@
-NAME 	= ../bin/engine
-SRCS = $(shell ..\files.bat)
-INCLUDE_FLAGS = -IC:\engine\engine\src -IC:\Lib\glfw\include -IC:\Lib\cglm\include -IC:\VulkanSDK\1.3.275.0\Include
-#COMPILER_FLAGS = -g -shared
-#LINKER_FLAGS = -LC:\Lib\glfw\lib-vc2022 -LC:\Lib\cglm\win\x64\Release -LC:\VulkanSDK\1.3.275.0\Lib -lshell32 -lgdi32 -lwinmm -luser32 -lcglm -lglfw3 -lvulkan-1 
-#DEFINES = -D_DEBUG -D_KEXPORT -D_CRT_SECURE_NO_WARNINGS
-COMPILER_FLAGS = /Zi /DLL /LD
-LINKER_FLAGS = shell32.lib gdi32.lib winmm.lib user32.lib cglm.lib glfw3.lib vulkan-1.lib /libpath:C:\Lib\glfw\lib-vc2022 /libpath:C:\Lib\cglm\win\x64\Release /libpath:C:\VulkanSDK\1.3.275.0\Lib
-DEFINES = /DDEBUG /DKEXPORT /DCRT_SECURE_NO_WARNINGS
-#clang -MJcompile_commands.json $(SRCS) $(COMPILER_FLAGS) -o $(NAME).dll $(DEFINES) $(INCLUDE_FLAGS) $(LINKER_FLAGS)
+#NAME 	= ../bin/engine
 
-all: $(NAME)
+ASSEMBLY = engine
+EXTENSION = .dll
+DIR = $(subst /,\,${CURDIR})
+BUILD_DIR = ..\bin
+OBJ_DIR = ..\obj\engine
+INCLUDE_FL = -Isrc -IC:\VulkanSDK\1.3.275.0\Include
+SRC_FILES = $(shell ..\files2.bat)
+DIRECTORIES = $(subst $(DIR),,$(shell dir src /S /AD /B | findstr /i src))
+OBJ_FILES = $(SRC_FILES:%=$(OBJ_DIR)/%.o)
 
-$(NAME):
-		clang-cl /clang:-MJcompile_commands.json $(DEFINES) $(COMPILER_FLAGS) $(INCLUDE_FLAGS) $(SRCS) /Fe"$(NAME)" $(LIB_DIR) /link /DLL /OUT:"$(NAME).dll" $(LINKER_FLAGS)
+#clang
+CLANG_COMPILER_FLAGS = -g -O0 -Wvarargs -Wall -fdeclspec -MJ ..\engine.json
+CLANG_LINKER_FLAGS = -shared -LC:\VulkanSDK\1.3.275.0\Lib -L$(OBJ_DIR) -lshell32 -lgdi32 -lwinmm -luser32 -lvulkan-1 
+CLANG_DEFINES = -D_DEBUG -DKEXPORT -D_CRT_SECURE_NO_WARNINGS
+CLANG_DLL = -o $(NAME).dll
+CLANG_NAME = -o $(NAME)
+
+#msvc
+MSVC_COMPILER_FLAGS = /clang:-MJ..\engine.json /Zi /DLL /LD
+MSVC_LINKER_FLAGS = shell32.lib gdi32.lib winmm.lib user32.lib vulkan-1.lib /libpath:C:\VulkanSDK\1.3.275.0\Lib
+MSVC_DEFINES = /D_DEBUG /DKEXPORT /DCRT_SECURE_NO_WARNINGS
+MSVC_DLL = /link /DLL /OUT:"$(NAME).dll"
+MSVC_NAME = /Fe"$(NAME)"
+
+#will be used
+CC = clang
+DEFINES = $(CLANG_DEFINES)
+LINKER_FL = $(CLANG_LINKER_FLAGS)
+COMPILE_FL = $(CLANG_COMPILER_FLAGS)
+DLL = $(CLANG_DLL)
+OUT_NAME = $(CLANG_NAME)
+
+all: scaffolding $(BUILD_DIR)/$(ASSEMBLY)$(EXTENSION)
+
+scaffolding: $(BUILD_DIR) $(OBJ_DIR)
+
+$(OBJ_DIR):
+	-@setlocal enableextensions enabledelayedexpansion && mkdir $(addprefix $(OBJ_DIR), $(DIRECTORIES)) 2>nul || cd .
+	@echo Created obj folders
+
+$(BUILD_DIR):
+	-@setlocal enableextensions enabledelayedexpansion && mkdir $(BUILD_DIR) 2>nul || cd .
+	@echo Created bin folder
+
+$(BUILD_DIR)/$(ASSEMBLY)$(EXTENSION): $(OBJ_FILES) 
+	@$(CC) $(OBJ_FILES) -o $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION) $(LINKER_FL)
+	@echo Linked $(ASSEMBLY)$(EXTENSION) in $(BUILD_DIR)\!
 
 clean:
-		rm -rf build/
+	@if exist $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION) del $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION)
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).ilk del $(BUILD_DIR)\$(ASSEMBLY).ilk
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).pdb del $(BUILD_DIR)\$(ASSEMBLY).pdb
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).lib del $(BUILD_DIR)\$(ASSEMBLY).lib 
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).exp del $(BUILD_DIR)\$(ASSEMBLY).exp 
 
-fclean: clean
-		rm -f demineur
-		rm -rf demineur.*
-
-re: fclean all
+fclean:
+	@if exist $(OBJ_DIR) rmdir /s /q $(OBJ_DIR)
 
 fc: fclean
 
-.PHONY: fclean fc clean all val opti
+re: fclean all
+
+$(OBJ_DIR)/%.c.o: %.c
+	@echo $<...
+	@$(CC) $(COMPILE_FL) $(DEFINES) $(INCLUDE_FL) $< -c -o $@
+
+.PHONY: all clean re fclean fc

@@ -421,8 +421,8 @@ b8 vulkan_renderer_backend_end_frame(renderer_backend* backend, f32 delta_time)
     vulkan_command_buffer_end(command_buffer);
 
     // Make sure the previous frame is not using this image (i.e. its fence is being waited on)
-    if (context.images_in_flight[context.image_index] != VK_NULL_HANDLE) {  // was fram
-																			// e
+    if (context.images_in_flight[context.image_index] != VK_NULL_HANDLE)
+	{  // was frame
         vulkan_fence_wait(
             &context,
             context.images_in_flight[context.image_index],
