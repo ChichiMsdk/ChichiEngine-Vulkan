@@ -1,6 +1,7 @@
 #NAME 	= ../bin/engine
 
 ASSEMBLY = engine
+JSON_FILE = temp.json
 EXTENSION = .dll
 DIR = $(subst /,\,${CURDIR})
 BUILD_DIR = ..\bin
@@ -11,8 +12,8 @@ DIRECTORIES = $(subst $(DIR),,$(shell dir src /S /AD /B | findstr /i src))
 OBJ_FILES = $(SRC_FILES:%=$(OBJ_DIR)/%.o)
 
 #clang
-CLANG_COMPILER_FLAGS = -g -O0 -Wvarargs -Wall -fdeclspec -MJ ..\engine.json
-CLANG_LINKER_FLAGS = -shared -LC:\VulkanSDK\1.3.275.0\Lib -L$(OBJ_DIR) -lshell32 -lgdi32 -lwinmm -luser32 -lvulkan-1 
+CLANG_COMPILER_FLAGS = -g -O0 -Wvarargs -Wall -fdeclspec -MJ $(JSON_FILE)
+CLANG_LINKER_FLAGS = -g -shared -LC:\VulkanSDK\1.3.275.0\Lib -L$(OBJ_DIR) -lshell32 -lgdi32 -lwinmm -luser32 -lvulkan-1 
 CLANG_DEFINES = -D_DEBUG -DKEXPORT -D_CRT_SECURE_NO_WARNINGS
 CLANG_DLL = -o $(NAME).dll
 CLANG_NAME = -o $(NAME)
@@ -47,16 +48,18 @@ $(BUILD_DIR):
 $(BUILD_DIR)/$(ASSEMBLY)$(EXTENSION): $(OBJ_FILES) 
 	@$(CC) $(OBJ_FILES) -o $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION) $(LINKER_FL)
 	@echo Linked $(ASSEMBLY)$(EXTENSION) in $(BUILD_DIR)\!
+	@if exist $(JSON_FILE) del $(JSON_FILE)
 
 clean:
-	@if exist $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION) del $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION)
-	@if exist $(BUILD_DIR)\$(ASSEMBLY).ilk del $(BUILD_DIR)\$(ASSEMBLY).ilk
-	@if exist $(BUILD_DIR)\$(ASSEMBLY).pdb del $(BUILD_DIR)\$(ASSEMBLY).pdb
-	@if exist $(BUILD_DIR)\$(ASSEMBLY).lib del $(BUILD_DIR)\$(ASSEMBLY).lib 
-	@if exist $(BUILD_DIR)\$(ASSEMBLY).exp del $(BUILD_DIR)\$(ASSEMBLY).exp 
+	@if exist $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION) del $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION) && @echo deleted $(BUILD_DIR)\$(ASSEMBLY)$(EXTENSION)
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).ilk del $(BUILD_DIR)\$(ASSEMBLY).ilk && @echo deleted $(BUILD_DIR)\$(ASSEMBLY).ilk
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).pdb del $(BUILD_DIR)\$(ASSEMBLY).pdb && @echo deleted $(BUILD_DIR)\$(ASSEMBLY).pdb
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).lib del $(BUILD_DIR)\$(ASSEMBLY).lib && @echo deleted $(BUILD_DIR)\$(ASSEMBLY).lib
+	@if exist $(BUILD_DIR)\$(ASSEMBLY).exp del $(BUILD_DIR)\$(ASSEMBLY).exp && @echo deleted $(BUILD_DIR)\$(ASSEMBLY).exp
 
-fclean:
-	@if exist $(OBJ_DIR) rmdir /s /q $(OBJ_DIR)
+fclean: clean
+	@if exist $(OBJ_DIR) rmdir /s /q $(OBJ_DIR) && @echo deleted folder $(OBJ_DIR)
+	@if exist engine.json del engine.json
 
 fc: fclean
 
@@ -65,5 +68,6 @@ re: fclean all
 $(OBJ_DIR)/%.c.o: %.c
 	@echo $<...
 	@$(CC) $(COMPILE_FL) $(DEFINES) $(INCLUDE_FL) $< -c -o $@
+	@if exist $(JSON_FILE) @cat $(JSON_FILE) >> engine.json
 
 .PHONY: all clean re fclean fc

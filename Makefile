@@ -1,8 +1,12 @@
 all: testbed
 	@echo "All assemblies built successfully."
 
-run:
-	.\build-all.bat && bin\testbed.exe
+run: testbed
+	bin\testbed.exe
+#	.\build-all.bat && bin\testbed.exe
+
+json: re
+	.\json_build.bat
 
 engine:
 	@echo "Building engine"
